@@ -184,7 +184,7 @@ When you run `/setup`, the plugin executes a deterministic 4-stage pipeline:
 ### Step 1: Interactive Discovery & Taxonomy Interview
 The agent initiates an interactive interview to understand your platform architecture, business model, tracking requirements, and privacy strategy.
 
-![Step 1: Interactive Discovery Interview](./images/step1-discovery-interview.jpg)
+![Step 1: Interactive Discovery Interview](./images/step1-discovery-interview.png)
 
 **Example Interaction:**
 - **Site Type:** Technical Portfolio & Peer Engagement
@@ -197,7 +197,7 @@ The agent initiates an interactive interview to understand your platform archite
 ### Step 2: Container Ingestion & Deep Diagnostic Audit
 The audit engine parses the container graph, detects defect patterns, and computes an objective Container Health Score (0-100).
 
-![Step 2: Deep Diagnostic Audit](./images/step2-diagnostic-audit.jpg)
+![Step 2: Deep Diagnostic Audit](./images/step2-diagnostic-audit.png)
 
 **Diagnostic Output:**
 ```text
@@ -217,7 +217,7 @@ The audit engine parses the container graph, detects defect patterns, and comput
 ### Step 3: Automated Tag Deduplication & Consent Remediation
 The engine automatically deduplicates redundant base scripts, consolidates firing triggers into primary tags, and applies the selected privacy mode.
 
-![Step 3: Automated Tag Deduplication & Remediation](./images/step3-automated-remediation.jpg)
+![Step 3: Automated Tag Deduplication & Remediation](./images/step3-automated-remediation.png)
 
 **Optimization Output:**
 ```text
@@ -233,7 +233,7 @@ The engine automatically deduplicates redundant base scripts, consolidates firin
 ### Step 4: Typed Contract Generation & Frontend Codebase Integration
 The plugin generates typed TypeScript definitions (`dataLayer.d.ts`) or native PHP classes (`GtmDataLayer.php`), ensuring complete type safety between code events and GTM triggers.
 
-![Step 4: Typed Contract Generation](./images/step4-typed-contracts.jpg)
+![Step 4: Typed Contract Generation](./images/step4-typed-contracts.png)
 
 **Generated Frontend Code Contract:**
 ```typescript
