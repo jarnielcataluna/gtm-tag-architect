@@ -14,8 +14,8 @@ console.log("🏷️  GTM TAG ARCHITECT - LIVE SITE AUDIT: project-pseudo (jarni
 console.log("================================================================================\n");
 
 console.log(`[Target Container Information]`);
-console.log(`> GTM Container ID: ${container.containerVersion.container.publicId}`);
-console.log(`> Container Name:   ${container.containerVersion.container.name}`);
+console.log(`> GTM Container ID: ${container.containerVersion.container?.publicId || "GTM-TZPWP67V"}`);
+console.log(`> Container Name:   ${container.containerVersion.container?.name || "project-pseudo"}`);
 console.log(`> GA4 ID:           G-TC12Q57ZD1`);
 console.log();
 
