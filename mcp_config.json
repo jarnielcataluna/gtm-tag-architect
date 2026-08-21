@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gtm-tag-architect": {
+      "command": "node",
+      "args": ["./bin/gtm-mcp.js"],
+      "env": {
+        "GTM_OFFLINE_CONTAINER_PATH": "./fixtures/sample-ecommerce-container.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "gtm-tag-architect",
+  "version": "0.1.0",
+  "description": "Interactive Google Tag Manager architect & audit plugin with MCP integration, Consent Mode v2, and tracking taxonomy runbooks.",
+  "author": "Jarniel Cataluna",
+  "homepage": "https://github.com/jarnielcataluna/gtm-tag-architect"
+}

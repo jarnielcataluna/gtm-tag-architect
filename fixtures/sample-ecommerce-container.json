@@ -1,0 +1,105 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-08-21 10:00:00",
+  "containerVersion": {
+    "path": "accounts/12345/containers/67890/versions/1",
+    "accountId": "12345",
+    "containerId": "67890",
+    "container": {
+      "publicId": "GTM-MOCK101",
+      "name": "Acme Retail Web Container",
+      "usageContext": ["WEB"]
+    },
+    "tag": [
+      {
+        "tagId": "1",
+        "name": "GA4 - Global Site Tag",
+        "type": "googtag",
+        "parameter": [
+          { "type": "template", "key": "tagId", "value": "G-ABC1234567" }
+        ],
+        "firingTriggerId": ["2147479553"],
+        "consentSettings": { "consentStatus": "NOT_SET" }
+      },
+      {
+        "tagId": "2",
+        "name": "GA4 - Duplicate Config Tag",
+        "type": "googtag",
+        "parameter": [
+          { "type": "template", "key": "tagId", "value": "G-ABC1234567" }
+        ],
+        "firingTriggerId": ["2147479553"],
+        "consentSettings": { "consentStatus": "NOT_SET" }
+      },
+      {
+        "tagId": "3",
+        "name": "Meta Pixel - Base Code",
+        "type": "html",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', '987654321');fbq('track', 'PageView');</script>"
+          }
+        ],
+        "firingTriggerId": ["2147479553"],
+        "consentSettings": { "consentStatus": "NOT_SET" }
+      },
+      {
+        "tagId": "4",
+        "name": "Meta Pixel - Extra Init on Checkout",
+        "type": "html",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>fbq('init', '987654321'); fbq('track', 'InitiateCheckout');</script>"
+          }
+        ],
+        "firingTriggerId": ["10"],
+        "consentSettings": { "consentStatus": "NOT_SET" }
+      },
+      {
+        "tagId": "5",
+        "name": "Hotjar Tracking Script (Orphaned)",
+        "type": "html",
+        "parameter": [
+          { "type": "template", "key": "html", "value": "<script>console.log('hotjar');</script>" }
+        ],
+        "firingTriggerId": [],
+        "consentSettings": { "consentStatus": "NOT_SET" }
+      }
+    ],
+    "trigger": [
+      {
+        "triggerId": "2147479553",
+        "name": "Initialization - All Pages",
+        "type": "PAGEVIEW"
+      },
+      {
+        "triggerId": "10",
+        "name": "Custom Event - begin_checkout",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "template", "key": "arg0", "value": "{{_event}}" },
+              { "type": "template", "key": "arg1", "value": "begin_checkout" }
+            ]
+          }
+        ]
+      }
+    ],
+    "variable": [
+      {
+        "variableId": "1",
+        "name": "dlv - ecommerce.items",
+        "type": "v",
+        "parameter": [
+          { "type": "template", "key": "name", "value": "ecommerce.items" }
+        ]
+      }
+    ]
+  }
+}

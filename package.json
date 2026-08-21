@@ -1,0 +1,35 @@
+{
+  "name": "gtm-tag-architect",
+  "version": "0.1.0",
+  "description": "Public Antigravity and Claude Code plugin for GTM container auditing, interactive setup, and tracking taxonomy architecture via MCP",
+  "type": "module",
+  "bin": {
+    "gtm-mcp": "./bin/gtm-mcp.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/server.ts",
+    "audit-fixture": "tsx src/test-audit.ts"
+  },
+  "keywords": [
+    "antigravity",
+    "claude-code",
+    "plugin",
+    "mcp",
+    "gtm",
+    "google-tag-manager",
+    "analytics",
+    "consent-mode-v2"
+  ],
+  "author": "Jarniel Cataluna",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
