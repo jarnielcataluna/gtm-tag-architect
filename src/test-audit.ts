@@ -31,7 +31,7 @@ async function main() {
   console.log(`  ✓ Pruned ${dedupResult.removedTags.length} duplicate tags: ${dedupResult.removedTags.join(", ")}`);
   console.log(`  ✓ Consolidated into: ${dedupResult.consolidatedTags.join(", ")}`);
 
-  const consentResult = applyConsentModeV2(dedupResult.updatedContainer, "denied");
+  const consentResult = applyConsentModeV2(dedupResult.updatedContainer, "enforce_denied");
   console.log(`  ✓ Applied Consent Mode v2 to ${consentResult.modifiedTags.length} tags: ${consentResult.modifiedTags.join(", ")}`);
   console.log();
 
@@ -41,10 +41,10 @@ async function main() {
   console.log(`> Remaining Critical Findings: ${postAudit.findings.filter(f => f.severity === 'critical').length}`);
   console.log();
 
-  console.log(`[Phase 4: Generated TypeScript dataLayer Contract]`);
-  const types = generateDataLayerDefinitions("ecommerce");
+  console.log(`[Phase 4: Generated PHP dataLayer Contract (WordPress / Laravel / Symfony)]`);
+  const phpHelper = generateDataLayerDefinitions("portfolio", "php");
   console.log("--------------------------------------------------------------------------------");
-  console.log(types.slice(0, 480) + "\n... [truncated]");
+  console.log(phpHelper.slice(0, 420) + "\n... [truncated]");
   console.log("--------------------------------------------------------------------------------\n");
 
   console.log("✅ Diagnostic audit and optimization completed successfully.");
