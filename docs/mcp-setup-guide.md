@@ -247,3 +247,20 @@ export interface PortfolioTrackingEvents {
 }
 ```
 
+---
+
+## 8. Real-World Verification on Production (jarniel.dev)
+
+Below is the live production verification of `gtm-tag-architect` running against **`jarniel.dev`** with container **`GTM-TZPWP67V`**:
+
+### A. Imported Workspace in Google Tag Manager
+After the plugin generates [`fixtures/project-pseudo-optimized-container.json`](../fixtures/project-pseudo-optimized-container.json), importing it into GTM creates all corresponding tags, triggers, and variables in one pass:
+
+![Google Tag Manager Imported Workspace](./images/gtm-workspace-imported.png)
+
+### B. Live Google Tag Assistant Telemetry
+Testing the live production site in Google Tag Assistant confirms that the client-side `AnalyticsTracker.tsx` is firing the typed events (`section_viewed`, `article_reading_milestone`, `Page View`) and GTM receives all hits with zero type drift:
+
+![Google Tag Assistant Live Telemetry](./images/tag-assistant-live-preview.png)
+
+
