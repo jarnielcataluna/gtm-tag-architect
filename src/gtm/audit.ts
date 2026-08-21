@@ -1,5 +1,42 @@
 import { GtmContainerExport, AuditFinding, AuditReport } from "../types/gtm.js";
 
+const MARKETING_VENDOR_KEYWORDS = [
+  "meta",
+  "facebook",
+  "tiktok",
+  "linkedin",
+  "pinterest",
+  "twitter",
+  "snapchat",
+  "criteo",
+  "bing",
+  "clarity",
+  "hotjar",
+  "crazyegg",
+  "klaviyo",
+  "hubspot",
+  "quora",
+  "reddit",
+];
+
+const PII_KEYWORDS = [
+  "email",
+  "e-mail",
+  "phone",
+  "mobile",
+  "ssn",
+  "password",
+  "pwd",
+  "pass",
+  "creditcard",
+  "cardnumber",
+  "cvv",
+  "first_name",
+  "last_name",
+  "address",
+  "zipcode",
+];
+
 export function auditContainer(container: GtmContainerExport): AuditReport {
   const version = container.containerVersion;
   const tags = version.tag || [];
@@ -9,7 +46,7 @@ export function auditContainer(container: GtmContainerExport): AuditReport {
   const findings: AuditFinding[] = [];
   const passedAudits: string[] = [];
 
-  const triggerIdSet = new Set(triggers.map((t) => t.triggerId));
+  const triggerMap = new Map(triggers.map((t) => [t.triggerId, t]));
 
   // 1. Audit Duplicate Tags & Measurement IDs
   const ga4ConfigMap = new Map<string, string[]>();
@@ -73,7 +110,7 @@ export function auditContainer(container: GtmContainerExport): AuditReport {
     passedAudits.push("No duplicate GA4 or Meta Pixel configurations detected.");
   }
 
-  // 2. Audit Missing Firing Triggers
+  // 2. Audit Missing Firing Triggers (Orphaned Tags)
   const unattachedTags: string[] = [];
   for (const tag of tags) {
     if (!tag.paused && (!tag.firingTriggerId || tag.firingTriggerId.length === 0)) {
@@ -99,13 +136,11 @@ export function auditContainer(container: GtmContainerExport): AuditReport {
   const unconsentedMarketingTags: string[] = [];
   for (const tag of tags) {
     if (tag.paused) continue;
+    const tagNameLower = tag.name.toLowerCase();
     const isMarketing =
       tag.type === "html" ||
-      tag.name.toLowerCase().includes("meta") ||
-      tag.name.toLowerCase().includes("facebook") ||
-      tag.name.toLowerCase().includes("tiktok") ||
-      tag.name.toLowerCase().includes("linkedin") ||
-      tag.name.toLowerCase().includes("hotjar");
+      tag.type.startsWith("__cvt_") ||
+      MARKETING_VENDOR_KEYWORDS.some((kw) => tagNameLower.includes(kw));
 
     if (isMarketing) {
       const consentStatus = tag.consentSettings?.consentStatus;
@@ -129,12 +164,76 @@ export function auditContainer(container: GtmContainerExport): AuditReport {
     passedAudits.push("Consent Mode v2 settings configured on all marketing tags.");
   }
 
-  // 4. Audit Performance & Core Web Vitals (TBT/LCP)
+  // 4. Audit PII (Personally Identifiable Information) Exposure in Variables
+  const exposedPiiEntities: string[] = [];
+  for (const v of variables) {
+    const varNameLower = v.name.toLowerCase();
+    const queryKeyParam = v.parameter?.find((p) => p.key === "queryKey" || p.key === "name")?.value;
+    const queryKeyLower = typeof queryKeyParam === "string" ? queryKeyParam.toLowerCase() : "";
+
+    const hasPiiPattern = PII_KEYWORDS.some(
+      (pii) => varNameLower.includes(pii) || queryKeyLower.includes(pii)
+    );
+
+    if (hasPiiPattern) {
+      exposedPiiEntities.push(v.name);
+    }
+  }
+
+  if (exposedPiiEntities.length > 0) {
+    findings.push({
+      id: "PRIVACY-PII-01",
+      category: "security",
+      title: "Potential PII (Personally Identifiable Information) Exposure in Variables",
+      description: `${exposedPiiEntities.length} variables capture sensitive fields (email, phone, password, address). Sending raw PII to Google Analytics or third-party ad networks violates GDPR/CCPA and GA terms of service.`,
+      affectedEntities: exposedPiiEntities,
+      severity: "critical",
+      recommendation: "Hash identifiers using SHA-256 before transmission or use Google Analytics native data redaction / sGTM redaction gateways.",
+    });
+  } else {
+    passedAudits.push("No unhashed PII variable capture patterns detected in variables.");
+  }
+
+  // 5. Audit Tag Firing Sequencing & Race Conditions
+  const raceConditionTags: string[] = [];
+  for (const tag of tags) {
+    if (tag.paused || tag.type !== "gaawe") continue; // GA4 Event tag
+    if (!tag.firingTriggerId) continue;
+
+    for (const triggerId of tag.firingTriggerId) {
+      const trigger = triggerMap.get(triggerId);
+      if (trigger && (trigger.type === "PAGEVIEW" || trigger.type === "DOM_READY")) {
+        // If firing on initial pageview before base tag initializes without sequencing
+        if (trigger.name.toLowerCase().includes("all pages") || trigger.name.toLowerCase().includes("initialization")) {
+          raceConditionTags.push(tag.name);
+        }
+      }
+    }
+  }
+
+  if (raceConditionTags.length > 0) {
+    findings.push({
+      id: "SEQ-RACE-01",
+      category: "triggers",
+      title: "Potential Tag Sequencing Race Condition",
+      description: `${raceConditionTags.length} GA4 Event tags are attached directly to early Pageview triggers. If an event tag executes before the base Google Tag initializes, parameters may fail to attach.`,
+      affectedEntities: raceConditionTags,
+      severity: "warning",
+      recommendation: "Ensure base Google Tag fires on 'Initialization - All Pages' or configure Tag Sequencing ('Fire a tag before this tag fires').",
+    });
+  } else {
+    passedAudits.push("No tag sequencing race conditions detected.");
+  }
+
+  // 6. Audit Performance & Core Web Vitals (TBT/LCP)
   const synchronousBlockingCustomHtml: string[] = [];
   for (const tag of tags) {
     if (tag.type === "html" && !tag.paused) {
       const html = tag.parameter?.find((p) => p.key === "html")?.value || "";
-      if (html.includes("document.write") || (html.includes("<script") && !html.includes("async") && !html.includes("defer"))) {
+      if (
+        html.includes("document.write") ||
+        (html.includes("<script") && !html.includes("async") && !html.includes("defer"))
+      ) {
         synchronousBlockingCustomHtml.push(tag.name);
       }
     }

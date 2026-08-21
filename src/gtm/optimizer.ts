@@ -111,8 +111,8 @@ export function applyConsentModeV2(
 
 export function addTagRecipe(
   container: GtmContainerExport,
-  recipe: "ga4_core" | "meta_pixel" | "linkedin_insight" | "posthog",
-  config: { measurementId?: string; pixelId?: string; partnerId?: string; posthogKey?: string }
+  recipe: "ga4_core" | "meta_pixel" | "linkedin_insight" | "posthog" | "sgtm_meta_capi" | "sgtm_ga4_proxy",
+  config: { measurementId?: string; pixelId?: string; partnerId?: string; posthogKey?: string; transportUrl?: string; apiAccessToken?: string }
 ): { updatedContainer: GtmContainerExport; addedTag: string } {
   const version = JSON.parse(JSON.stringify(container.containerVersion));
   const tags: GtmTag[] = version.tag || [];
@@ -150,6 +150,39 @@ export function addTagRecipe(
       consentSettings: {
         consentStatus: "NEEDED",
         consentType: ["ad_storage", "ad_user_data", "ad_personalization"],
+      },
+    };
+  } else if (recipe === "sgtm_ga4_proxy" && config.measurementId) {
+    newTag = {
+      tagId: `tag_${Date.now()}`,
+      name: `sGTM - GA4 Proxy with First-Party Transport (${config.measurementId})`,
+      type: "googtag",
+      parameter: [
+        { type: "template", key: "tagId", value: config.measurementId },
+        { type: "template", key: "server_container_url", value: config.transportUrl || "https://data.yourdomain.com" },
+      ],
+      firingTriggerId: ["2147479553"],
+      consentSettings: {
+        consentStatus: "NEEDED",
+        consentType: ["analytics_storage"],
+      },
+    };
+  } else if (recipe === "sgtm_meta_capi" && config.pixelId) {
+    newTag = {
+      tagId: `tag_${Date.now()}`,
+      name: `sGTM - Meta Conversions API (CAPI) Server Forwarder (${config.pixelId})`,
+      type: "html",
+      parameter: [
+        {
+          type: "template",
+          key: "html",
+          value: `<!-- sGTM Meta CAPI Forwarder -->\n<script>\nfetch('${config.transportUrl || "https://data.yourdomain.com"}/meta-capi', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({\n    pixel_id: '${config.pixelId}',\n    event_name: 'PageView',\n    event_time: Math.floor(Date.now() / 1000),\n    action_source: 'website'\n  })\n});\n</script>`,
+        },
+      ],
+      firingTriggerId: ["2147479553"],
+      consentSettings: {
+        consentStatus: "NEEDED",
+        consentType: ["ad_storage", "ad_user_data"],
       },
     };
   }

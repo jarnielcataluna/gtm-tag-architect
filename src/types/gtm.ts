@@ -120,12 +120,20 @@ export const GtmApplyConsentModeInputSchema = z.object({
 export const GtmAddTagRecipeInputSchema = z.object({
   containerPath: z.string().optional(),
   outputPath: z.string().optional(),
-  recipe: z.enum(["ga4_core", "meta_pixel", "linkedin_insight", "posthog"]),
+  recipe: z.enum(["ga4_core", "meta_pixel", "linkedin_insight", "posthog", "sgtm_meta_capi", "sgtm_ga4_proxy"]),
   measurementId: z.string().optional(),
   pixelId: z.string().optional(),
+  transportUrl: z.string().optional(),
+  apiAccessToken: z.string().optional(),
 });
 
 export const GtmGenerateDataLayerTypesInputSchema = z.object({
   industry: z.enum(["portfolio", "ecommerce", "saas", "leadgen", "content"]).default("portfolio"),
   framework: z.enum(["typescript", "php", "wordpress", "laravel", "symfony", "vanilla"]).default("typescript"),
+});
+
+export const GtmExportAuditReportInputSchema = z.object({
+  containerPath: z.string().optional(),
+  format: z.enum(["markdown", "html"]).default("markdown"),
+  outputPath: z.string().optional(),
 });

@@ -13,6 +13,7 @@ import path from "path";
 import { auditContainer } from "./gtm/audit.js";
 import { deduplicateTags, applyConsentModeV2, addTagRecipe } from "./gtm/optimizer.js";
 import { generateDataLayerDefinitions } from "./gtm/datalayer.js";
+import { generateMarkdownReport, generateHtmlReport } from "./gtm/report.js";
 import {
   GtmContainerExport,
   GtmAuditContainerInputSchema,
@@ -20,6 +21,7 @@ import {
   GtmApplyConsentModeInputSchema,
   GtmAddTagRecipeInputSchema,
   GtmGenerateDataLayerTypesInputSchema,
+  GtmExportAuditReportInputSchema,
 } from "./types/gtm.js";
 
 const server = new Server(
@@ -156,6 +158,29 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["industry"],
         },
       },
+      {
+        name: "gtm_export_audit_report",
+        description:
+          "Exports a formatted diagnostic audit report in Markdown or standalone HTML format with executive scoring and remediation plans.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            containerPath: {
+              type: "string",
+              description: "Path to container JSON file",
+            },
+            format: {
+              type: "string",
+              enum: ["markdown", "html"],
+              description: "Output report format (markdown or html)",
+            },
+            outputPath: {
+              type: "string",
+              description: "Optional file path to save the generated report",
+            },
+          },
+        },
+      },
     ],
   };
 });
@@ -266,6 +291,31 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: "text",
               text: code,
+            },
+          ],
+        };
+      }
+
+      case "gtm_export_audit_report": {
+        const parsed = GtmExportAuditReportInputSchema.parse(rawArgs);
+        const { container } = await loadContainerJson(parsed.containerPath);
+        const report = auditContainer(container);
+        const output =
+          parsed.format === "html" ? generateHtmlReport(report) : generateMarkdownReport(report);
+
+        let savedTo: string | null = null;
+        if (parsed.outputPath) {
+          const resolved = path.resolve(process.cwd(), parsed.outputPath);
+          await fs.mkdir(path.dirname(resolved), { recursive: true });
+          await fs.writeFile(resolved, output, "utf-8");
+          savedTo = resolved;
+        }
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: savedTo ? `Report saved to ${savedTo}\n\n${output}` : output,
             },
           ],
         };
