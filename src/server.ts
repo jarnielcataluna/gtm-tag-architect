@@ -3,35 +3,60 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "fs/promises";
 import path from "path";
 import { auditContainer } from "./gtm/audit.js";
 import { deduplicateTags, applyConsentModeV2, addTagRecipe } from "./gtm/optimizer.js";
 import { generateDataLayerDefinitions } from "./gtm/datalayer.js";
-import { GtmContainerExport } from "./types/gtm.js";
+import {
+  GtmContainerExport,
+  GtmAuditContainerInputSchema,
+  GtmDeduplicateTagsInputSchema,
+  GtmApplyConsentModeInputSchema,
+  GtmAddTagRecipeInputSchema,
+  GtmGenerateDataLayerTypesInputSchema,
+} from "./types/gtm.js";
 
 const server = new Server(
   {
     name: "gtm-tag-architect",
-    version: "0.1.0",
+    version: "0.2.0",
   },
   {
     capabilities: {
       tools: {},
+      resources: {},
+      prompts: {},
     },
   }
 );
 
-async function loadContainerJson(inputPath?: string): Promise<GtmContainerExport> {
+async function loadContainerJson(inputPath?: string): Promise<{ container: GtmContainerExport; filePath: string }> {
   const filePath =
     inputPath ||
     process.env.GTM_OFFLINE_CONTAINER_PATH ||
     path.resolve(process.cwd(), "fixtures/sample-ecommerce-container.json");
 
   const raw = await fs.readFile(filePath, "utf-8");
-  return JSON.parse(raw) as GtmContainerExport;
+  return { container: JSON.parse(raw) as GtmContainerExport, filePath };
 }
+
+async function maybeWriteContainer(container: GtmContainerExport, outputPath?: string): Promise<string | null> {
+  if (!outputPath) return null;
+  const resolved = path.resolve(process.cwd(), outputPath);
+  await fs.mkdir(path.dirname(resolved), { recursive: true });
+  await fs.writeFile(resolved, JSON.stringify(container, null, 2), "utf-8");
+  return resolved;
+}
+
+// -----------------------------------------------------------------------------
+// MCP TOOLS
+// -----------------------------------------------------------------------------
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -61,19 +86,27 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Path to container JSON file",
             },
+            outputPath: {
+              type: "string",
+              description: "Optional path to save the cleaned container JSON file",
+            },
           },
         },
       },
       {
         name: "gtm_apply_consent_mode",
         description:
-          "Configures Google Consent Mode v2 on all analytics and marketing tags (requiring ad_storage, ad_user_data, and analytics_storage).",
+          "Configures Google Consent Mode v2 on all analytics and marketing tags or bypasses consent for direct firing.",
         inputSchema: {
           type: "object",
           properties: {
             containerPath: {
               type: "string",
               description: "Path to container JSON file",
+            },
+            outputPath: {
+              type: "string",
+              description: "Optional path to save the updated container JSON file",
             },
             mode: {
               type: "string",
@@ -91,6 +124,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           type: "object",
           properties: {
             containerPath: { type: "string" },
+            outputPath: { type: "string", description: "Optional path to save updated container" },
             recipe: {
               type: "string",
               enum: ["ga4_core", "meta_pixel", "linkedin_insight", "posthog"],
@@ -127,26 +161,30 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args = {} } = request.params;
+  const { name, arguments: rawArgs = {} } = request.params;
 
   try {
     switch (name) {
       case "gtm_audit_container": {
-        const container = await loadContainerJson((args as any).containerPath);
+        const parsed = GtmAuditContainerInputSchema.parse(rawArgs);
+        const { container, filePath } = await loadContainerJson(parsed.containerPath);
         const report = auditContainer(container);
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(report, null, 2),
+              text: JSON.stringify({ sourceFile: filePath, ...report }, null, 2),
             },
           ],
         };
       }
 
       case "gtm_deduplicate_tags": {
-        const container = await loadContainerJson((args as any).containerPath);
+        const parsed = GtmDeduplicateTagsInputSchema.parse(rawArgs);
+        const { container } = await loadContainerJson(parsed.containerPath);
         const result = deduplicateTags(container);
+        const savedTo = await maybeWriteContainer(result.updatedContainer, parsed.outputPath);
+
         return {
           content: [
             {
@@ -157,6 +195,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   removedCount: result.removedTags.length,
                   removedTags: result.removedTags,
                   consolidatedTags: result.consolidatedTags,
+                  savedTo: savedTo || undefined,
                 },
                 null,
                 2
@@ -167,8 +206,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "gtm_apply_consent_mode": {
-        const container = await loadContainerJson((args as any).containerPath);
-        const result = applyConsentModeV2(container, (args as any).mode || "enforce_denied");
+        const parsed = GtmApplyConsentModeInputSchema.parse(rawArgs);
+        const { container } = await loadContainerJson(parsed.containerPath);
+        const result = applyConsentModeV2(container, parsed.mode);
+        const savedTo = await maybeWriteContainer(result.updatedContainer, parsed.outputPath);
+
         return {
           content: [
             {
@@ -176,9 +218,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               text: JSON.stringify(
                 {
                   status: "success",
-                  mode: (args as any).mode || "enforce_denied",
+                  mode: parsed.mode,
                   modifiedTagsCount: result.modifiedTags.length,
                   modifiedTags: result.modifiedTags,
+                  savedTo: savedTo || undefined,
                 },
                 null,
                 2
@@ -189,26 +232,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "gtm_add_tag_recipe": {
-        const container = await loadContainerJson((args as any).containerPath);
-        const result = addTagRecipe(container, (args as any).recipe, {
-          measurementId: (args as any).measurementId,
-          pixelId: (args as any).pixelId,
+        const parsed = GtmAddTagRecipeInputSchema.parse(rawArgs);
+        const { container } = await loadContainerJson(parsed.containerPath);
+        const result = addTagRecipe(container, parsed.recipe, {
+          measurementId: parsed.measurementId,
+          pixelId: parsed.pixelId,
         });
+        const savedTo = await maybeWriteContainer(result.updatedContainer, parsed.outputPath);
+
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify({ status: "success", addedTag: result.addedTag }, null, 2),
+              text: JSON.stringify(
+                {
+                  status: "success",
+                  addedTag: result.addedTag,
+                  savedTo: savedTo || undefined,
+                },
+                null,
+                2
+              ),
             },
           ],
         };
       }
 
       case "gtm_generate_datalayer_types": {
-        const code = generateDataLayerDefinitions(
-          (args as any).industry || "ecommerce",
-          (args as any).framework || "typescript"
-        );
+        const parsed = GtmGenerateDataLayerTypesInputSchema.parse(rawArgs);
+        const code = generateDataLayerDefinitions(parsed.industry, parsed.framework);
         return {
           content: [
             {
@@ -234,6 +286,140 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     };
   }
 });
+
+// -----------------------------------------------------------------------------
+// MCP RESOURCES
+// -----------------------------------------------------------------------------
+
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "gtm://container/health",
+        name: "Current GTM Container Health",
+        description: "Live diagnostic report and health score of the active container",
+        mimeType: "application/json",
+      },
+      {
+        uri: "gtm://taxonomies/portfolio",
+        name: "Technical Portfolio Tracking Taxonomy",
+        description: "Event contracts and interaction metrics for senior engineer portfolios",
+        mimeType: "text/markdown",
+      },
+      {
+        uri: "gtm://taxonomies/ecommerce",
+        name: "E-Commerce Tracking Taxonomy",
+        description: "GA4 e-commerce standard funnel (view_item, add_to_cart, purchase)",
+        mimeType: "text/markdown",
+      },
+      {
+        uri: "gtm://taxonomies/saas",
+        name: "SaaS & Product Analytics Taxonomy",
+        description: "Self-serve signup, subscription tiers, and feature activation tracking",
+        mimeType: "text/markdown",
+      },
+    ],
+  };
+});
+
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const { uri } = request.params;
+
+  if (uri === "gtm://container/health") {
+    const { container } = await loadContainerJson();
+    const report = auditContainer(container);
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: "application/json",
+          text: JSON.stringify(report, null, 2),
+        },
+      ],
+    };
+  }
+
+  const taxonomyMap: Record<string, string> = {
+    "gtm://taxonomies/portfolio": "skills/setup/references/taxonomy-portfolio.md",
+    "gtm://taxonomies/ecommerce": "skills/setup/references/taxonomy-ecommerce.md",
+    "gtm://taxonomies/saas": "skills/setup/references/taxonomy-saas.md",
+  };
+
+  if (taxonomyMap[uri]) {
+    const filePath = path.resolve(process.cwd(), taxonomyMap[uri]);
+    const text = await fs.readFile(filePath, "utf-8").catch(() => "# Taxonomy Reference Not Found");
+    return {
+      contents: [
+        {
+          uri,
+          mimeType: "text/markdown",
+          text,
+        },
+      ],
+    };
+  }
+
+  throw new Error(`Resource not found: ${uri}`);
+});
+
+// -----------------------------------------------------------------------------
+// MCP PROMPTS
+// -----------------------------------------------------------------------------
+
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return {
+    prompts: [
+      {
+        name: "gtm_setup_interview",
+        description: "Interactive setup interview to architect and optimize a site's GTM container",
+      },
+      {
+        name: "gtm_audit_inspection",
+        description: "Diagnostic container inspection catching duplicates and privacy violations",
+      },
+    ],
+  };
+});
+
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  const { name } = request.params;
+
+  if (name === "gtm_setup_interview") {
+    return {
+      description: "Interactive GTM setup interview",
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: "Please interview me about my site architecture, industry, required analytics pixels (GA4, Meta, LinkedIn, PostHog), and privacy mode (Consent Mode v2 vs Direct Firing) to optimize my Google Tag Manager tracking setup.",
+          },
+        },
+      ],
+    };
+  }
+
+  if (name === "gtm_audit_inspection") {
+    return {
+      description: "Deep GTM container audit",
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: "Please run a diagnostic audit on my GTM container to check for duplicate measurement IDs, orphaned triggers, unconsented marketing tags, and render-blocking scripts.",
+          },
+        },
+      ],
+    };
+  }
+
+  throw new Error(`Prompt not found: ${name}`);
+});
+
+// -----------------------------------------------------------------------------
+// STDIO TRANSPORT STARTUP
+// -----------------------------------------------------------------------------
 
 async function main() {
   const transport = new StdioServerTransport();

@@ -10,7 +10,8 @@
     "build": "tsc",
     "dev": "tsx src/server.ts",
     "audit-fixture": "tsx src/test-audit.ts",
-    "audit:portfolio": "tsx src/audit-project-pseudo.ts"
+    "audit:portfolio": "tsx src/audit-project-pseudo.ts",
+    "test": "tsx src/test-mcp-suite.ts"
   },
   "keywords": [
     "antigravity",

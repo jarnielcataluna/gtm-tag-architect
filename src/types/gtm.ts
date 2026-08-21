@@ -100,3 +100,32 @@ export const AuditReportSchema = z.object({
 });
 
 export type AuditReport = z.infer<typeof AuditReportSchema>;
+
+// Tool Input Schemas for Strict MCP Validation
+export const GtmAuditContainerInputSchema = z.object({
+  containerPath: z.string().optional(),
+});
+
+export const GtmDeduplicateTagsInputSchema = z.object({
+  containerPath: z.string().optional(),
+  outputPath: z.string().optional(),
+});
+
+export const GtmApplyConsentModeInputSchema = z.object({
+  containerPath: z.string().optional(),
+  outputPath: z.string().optional(),
+  mode: z.enum(["enforce_denied", "enforce_granted", "bypass_opt_out"]).default("enforce_denied"),
+});
+
+export const GtmAddTagRecipeInputSchema = z.object({
+  containerPath: z.string().optional(),
+  outputPath: z.string().optional(),
+  recipe: z.enum(["ga4_core", "meta_pixel", "linkedin_insight", "posthog"]),
+  measurementId: z.string().optional(),
+  pixelId: z.string().optional(),
+});
+
+export const GtmGenerateDataLayerTypesInputSchema = z.object({
+  industry: z.enum(["portfolio", "ecommerce", "saas", "leadgen", "content"]).default("portfolio"),
+  framework: z.enum(["typescript", "php", "wordpress", "laravel", "symfony", "vanilla"]).default("typescript"),
+});
