@@ -110,7 +110,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             industry: {
               type: "string",
-              enum: ["ecommerce", "saas", "leadgen", "content"],
+              enum: ["portfolio", "ecommerce", "saas", "leadgen", "content"],
               description: "Target industry tracking taxonomy",
             },
           },
