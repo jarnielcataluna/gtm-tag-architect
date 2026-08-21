@@ -49,7 +49,7 @@ export function deduplicateTags(container: GtmContainerExport): {
 
 export function applyConsentModeV2(
   container: GtmContainerExport,
-  defaultState: "denied" | "granted" = "denied"
+  mode: "enforce_denied" | "enforce_granted" | "bypass_opt_out" = "enforce_denied"
 ): {
   updatedContainer: GtmContainerExport;
   modifiedTags: string[];
@@ -59,6 +59,16 @@ export function applyConsentModeV2(
   const modifiedTags: string[] = [];
 
   for (const tag of tags) {
+    if (mode === "bypass_opt_out") {
+      // Opt-out mode: Remove consent gating so tags fire unconditionally
+      tag.consentSettings = {
+        consentStatus: "NOT_NEEDED",
+        consentType: [],
+      };
+      modifiedTags.push(tag.name);
+      continue;
+    }
+
     const isMarketing =
       tag.type === "html" ||
       tag.name.toLowerCase().includes("meta") ||

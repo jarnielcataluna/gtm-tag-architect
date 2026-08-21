@@ -22,16 +22,16 @@ Ask the user these 4 targeted questions (or infer from repository context if alr
    - B2B / Lead Generation (Contact forms, case studies, meeting booking)
    - Content / Media / Portfolio (Articles, newsletter, reading depth)
 2. **Platform & Tech Stack:**
-   - Framework (Next.js App Router, React, Vue, WordPress, Static HTML)
-   - Server-Side vs Client-Side rendering
+   - **Frontend / Framework:** Next.js App Router, React, Vue, Vanilla HTML/JS
+   - **PHP / CMS Backends:** WordPress (`wp_head` hooks), Laravel (Blade), Symfony (Twig), Custom PHP (`GtmDataLayer.php`)
 3. **Required Tracking & Ad Pixels:**
    - Google Analytics 4 (GA4)
    - Meta Pixel & CAPI
    - Google Ads (Conversions & Enhanced Conversions)
    - LinkedIn Insight Tag / TikTok Pixel / PostHog / Hotjar
 4. **Privacy & Regulatory Compliance:**
-   - European Union / GDPR (Requires Google Consent Mode v2 default `denied`)
-   - US / CCPA or Global Standard
+   - **Option A: Enforce Consent Mode v2 (Strict GDPR/EEA):** Marketing tags gated behind `ad_storage`, `ad_user_data`, `analytics_storage` consent updates.
+   - **Option B: Opt-Out / Direct Firing (Bypass Consent Mode):** Removes consent gating so tags fire immediately on page load (ideal for US-only traffic, internal dashboards, and developer staging environments).
 
 ---
 

@@ -75,10 +75,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Path to container JSON file",
             },
-            defaultState: {
+            mode: {
               type: "string",
-              enum: ["denied", "granted"],
-              description: "Default consent state prior to user CMP interaction",
+              enum: ["enforce_denied", "enforce_granted", "bypass_opt_out"],
+              description: "Consent Mode strategy: 'enforce_denied' (GDPR strict), 'enforce_granted', or 'bypass_opt_out' (removes consent gating for unrestricted direct tag firing)",
             },
           },
         },
@@ -104,7 +104,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "gtm_generate_datalayer_types",
         description:
-          "Generates production TypeScript type definitions and helper push functions for developers (E-commerce, SaaS, or Lead Gen).",
+          "Generates production TypeScript type definitions or PHP server-side dataLayer helpers (for WordPress, Symfony, Laravel, React/Next.js, or vanilla).",
         inputSchema: {
           type: "object",
           properties: {
@@ -112,6 +112,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               enum: ["portfolio", "ecommerce", "saas", "leadgen", "content"],
               description: "Target industry tracking taxonomy",
+            },
+            framework: {
+              type: "string",
+              enum: ["typescript", "php", "wordpress", "laravel", "symfony", "vanilla"],
+              description: "Frontend or backend language/framework (TypeScript for Next.js/React, PHP for WordPress/Symfony/Laravel)",
             },
           },
           required: ["industry"],
@@ -163,7 +168,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "gtm_apply_consent_mode": {
         const container = await loadContainerJson((args as any).containerPath);
-        const result = applyConsentModeV2(container, (args as any).defaultState || "denied");
+        const result = applyConsentModeV2(container, (args as any).mode || "enforce_denied");
         return {
           content: [
             {
@@ -171,6 +176,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               text: JSON.stringify(
                 {
                   status: "success",
+                  mode: (args as any).mode || "enforce_denied",
                   modifiedTagsCount: result.modifiedTags.length,
                   modifiedTags: result.modifiedTags,
                 },
@@ -199,7 +205,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "gtm_generate_datalayer_types": {
-        const code = generateDataLayerDefinitions((args as any).industry || "ecommerce");
+        const code = generateDataLayerDefinitions(
+          (args as any).industry || "ecommerce",
+          (args as any).framework || "typescript"
+        );
         return {
           content: [
             {
