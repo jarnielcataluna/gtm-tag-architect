@@ -1,0 +1,179 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-08-21 13:27:00",
+  "containerVersion": {
+    "path": "accounts/6000000000/containers/260065464/versions/1",
+    "accountId": "6000000000",
+    "containerId": "260065464",
+    "container": {
+      "path": "accounts/6000000000/containers/260065464",
+      "accountId": "6000000000",
+      "containerId": "260065464",
+      "name": "project-pseudo (jarniel.dev) - Production",
+      "publicId": "GTM-TZPWP67V",
+      "usageContext": ["WEB"]
+    },
+    "tag": [
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "1",
+        "name": "GA4 - Configuration Tag",
+        "type": "googtag",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "false" },
+          { "type": "TEMPLATE", "key": "tagId", "value": "G-TC12Q57ZD1" }
+        ],
+        "firingTriggerId": ["2147479553"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "2",
+        "name": "GA4 Event - Contact Form Submitted",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "generate_lead" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "G-TC12Q57ZD1" }
+        ],
+        "firingTriggerId": ["10"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "3",
+        "name": "GA4 Event - Section Viewed",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "section_viewed" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "G-TC12Q57ZD1" }
+        ],
+        "firingTriggerId": ["11"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "4",
+        "name": "GA4 Event - Credential Verified",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "credential_verified" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "G-TC12Q57ZD1" }
+        ],
+        "firingTriggerId": ["12"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "5",
+        "name": "GA4 Event - External Project Clicked",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "external_project_clicked" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "G-TC12Q57ZD1" }
+        ],
+        "firingTriggerId": ["13"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "6",
+        "name": "GA4 Event - Article Reading Milestone",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "article_reading_milestone" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "G-TC12Q57ZD1" }
+        ],
+        "firingTriggerId": ["14"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "7",
+        "name": "GA4 Event - Code Snippet Copied",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "article_code_copied" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "G-TC12Q57ZD1" }
+        ],
+        "firingTriggerId": ["15"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "2147479553",
+        "name": "Initialization - All Pages",
+        "type": "PAGEVIEW"
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "10",
+        "name": "Event - contact_form_submitted",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          { "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "contact_form_submitted" }] }
+        ]
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "11",
+        "name": "Event - section_viewed",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          { "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "section_viewed" }] }
+        ]
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "12",
+        "name": "Event - credential_verified",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          { "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "credential_verified" }] }
+        ]
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "13",
+        "name": "Event - external_project_clicked",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          { "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "external_project_clicked" }] }
+        ]
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "14",
+        "name": "Event - article_reading_milestone",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          { "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "article_reading_milestone" }] }
+        ]
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "15",
+        "name": "Event - article_code_copied",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          { "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "article_code_copied" }] }
+        ]
+      }
+    ]
+  }
+}

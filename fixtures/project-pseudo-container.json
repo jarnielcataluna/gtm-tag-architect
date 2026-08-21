@@ -1,0 +1,153 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-08-21 13:26:00",
+  "containerVersion": {
+    "path": "accounts/6000000000/containers/260065464/versions/0",
+    "accountId": "6000000000",
+    "containerId": "260065464",
+    "container": {
+      "path": "accounts/6000000000/containers/260065464",
+      "accountId": "6000000000",
+      "containerId": "260065464",
+      "name": "project-pseudo (jarniel.dev)",
+      "publicId": "GTM-TZPWP67V",
+      "usageContext": ["WEB"]
+    },
+    "tag": [
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "4",
+        "name": "Google Tag - GA4 Global Configuration",
+        "type": "googtag",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "tagId",
+            "value": "G-TC12Q57ZD1"
+          }
+        ],
+        "firingTriggerId": ["2147479553"],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        }
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "tagId": "7",
+        "name": "GA4 Event - Generate Lead (Form Submit)",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "generate_lead"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "G-TC12Q57ZD1"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "form_name"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{form_name}}"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["10"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "2147479553",
+        "name": "Initialization - All Pages",
+        "type": "PAGEVIEW"
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "triggerId": "10",
+        "name": "Custom Event - form_submit",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "form_submit"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "variable": [
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "variableId": "1",
+        "name": "GA4 Measurement ID",
+        "type": "c",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "G-TC12Q57ZD1"
+          }
+        ]
+      },
+      {
+        "accountId": "6000000000",
+        "containerId": "260065464",
+        "variableId": "2",
+        "name": "dlv - form_name",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "form_name"
+          },
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          }
+        ]
+      }
+    ]
+  }
+}

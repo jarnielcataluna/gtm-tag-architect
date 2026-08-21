@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/server.ts",
-    "audit-fixture": "tsx src/test-audit.ts"
+    "audit-fixture": "tsx src/test-audit.ts",
+    "audit:portfolio": "tsx src/audit-project-pseudo.ts"
   },
   "keywords": [
     "antigravity",
